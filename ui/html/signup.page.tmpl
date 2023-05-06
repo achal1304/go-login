@@ -1,0 +1,43 @@
+<div>
+  <form action='/user/signup' method='POST' novalidate>
+    {{with .Form}}
+    <div>
+      <label>Email:</label>
+      {{with .Errors.Get "email"}}
+      <label class='error'>{{.}}</label>
+      {{end}}
+      <input type='email' name='email' value='{{.Get "email"}}'>
+    </div>
+    <div>
+      <label>Password:</label>
+      {{with .Errors.Get "password"}}
+      <label class='error'>{{.}}</label>
+      {{end}}
+      <input type='password' name='password'>
+    </div>
+    <div>
+      <input type='submit' value='Signup'>
+    </div>
+    {{end}}
+  </form>
+</div>
+
+<style>
+  label {
+    display: block;
+    margin-bottom: 0.5em;
+  }
+
+  input[type="email"],
+  input[type="password"],
+  input[type="submit"] {
+    display: block;
+    margin-bottom: 1em;
+  }
+
+  .error {
+    color: red;
+    font-style: italic;
+    font-size: 0.8em;
+  }
+</style>

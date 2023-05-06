@@ -6,10 +6,10 @@ import (
 	"time"
 )
 
-func RunServer() {
+func (app *application) RunServer() {
 	srv := &http.Server{
 		Addr:         ":4000",
-		Handler:      Routes(),
+		Handler:      app.Routes(),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,

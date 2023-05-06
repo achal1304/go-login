@@ -6,10 +6,12 @@ import (
 	"github.com/bmizerany/pat"
 )
 
-func Routes() http.Handler {
+func (app *application) Routes() http.Handler {
 	mux := pat.New()
 
-	mux.Get("/", http.HandlerFunc(Home))
+	// mux.Get("/", http.HandlerFunc(Home))
+	mux.Get("/", http.HandlerFunc(app.signUpUserForm))
+	mux.Post("/signup", http.HandlerFunc(app.signUpUser))
 
 	return mux
 }

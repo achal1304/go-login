@@ -4,14 +4,24 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/achal1304/go-login/pkg/models/mysql"
 	_ "github.com/go-sql-driver/mysql"
 )
 
+type application struct {
+	users *mysql.UserModel
+}
+
 func main() {
 	dsn := "root:achal1234@/login?parseTime=true"
-	connect(dsn)
+	db := connect(dsn)
+	defer db.Close()
 
-	RunServer()
+	app := &application{
+		users: &mysql.UserModel{DB: db},
+	}
+
+	app.RunServer()
 	fmt.Println("hello world")
 }
 
