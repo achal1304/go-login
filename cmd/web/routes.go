@@ -11,7 +11,7 @@ func (app *application) Routes() http.Handler {
 
 	// mux.Get("/", http.HandlerFunc(Home))
 	mux.Get("/", http.HandlerFunc(app.signUpUserForm))
-	mux.Post("/signup", http.HandlerFunc(app.signUpUser))
+	mux.Post("/", http.HandlerFunc(app.signUpUser))
 
 	return mux
 }
