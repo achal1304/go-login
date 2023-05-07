@@ -3,22 +3,31 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/achal1304/go-login/pkg/models/mysql"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/golangcollege/sessions"
 )
 
 type application struct {
-	users *mysql.UserModel
+	users   *mysql.UserModel
+	session *sessions.Session
 }
 
 func main() {
 	dsn := "root:achal1234@/login?parseTime=true"
+	secret := "s6Nd%+pPbnzHbS*+9Pk8qGWhTzbpa@ge"
+
 	db := connect(dsn)
 	defer db.Close()
 
+	session := sessions.New([]byte(secret))
+	session.Lifetime = 12 * time.Hour
+
 	app := &application{
-		users: &mysql.UserModel{DB: db},
+		users:   &mysql.UserModel{DB: db},
+		session: session,
 	}
 
 	app.RunServer()

@@ -28,6 +28,7 @@ func (app *application) signUpUserForm(w http.ResponseWriter, r *http.Request) {
 	}
 	app.render(w, r, files, data)
 }
+
 func (app *application) signUpUser(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
@@ -55,6 +56,50 @@ func (app *application) signUpUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Print("Created a new user")
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
+
+}
+
+func (app *application) loginUserForm(w http.ResponseWriter, r *http.Request) {
+	files := []string{
+		"./ui/html/login.page.tmpl",
+	}
+	data := templateData{
+		Form: forms.New(nil),
+	}
+	app.render(w, r, files, data)
+}
+
+func (app *application) loginUser(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	form := forms.New(r.PostForm)
+	form.MinLength("password", 3)
+	form.MatchesPattern("email", forms.EmailRX)
+
+	if !form.Valid() {
+		app.render(w, r, []string{"./ui/html/login.page.tmpl"}, &templateData{Form: form})
+		return
+	}
+
+	userId, err := app.users.AuthenticateUser(form.Get("email"), form.Get("password"))
+	if err != nil {
+		if errors.Is(err, mysql.ErrInvalidCredentials) {
+			form.Errors.Add("generic", "Email or Password is incorrect")
+			app.render(w, r, []string{"./ui/html/login.page.tmpl"}, &templateData{Form: form})
+		} else {
+			app.serverError(w, err)
+		}
+		return
+	}
+
+	app.session.Put(r, "authenticatedUserID", userId)
+
+	http.Redirect(w, r, "/home", http.StatusSeeOther)
 }
 
 func (app *application) signUpWithGoogleProvider(w http.ResponseWriter, r *http.Request) {
@@ -97,5 +142,10 @@ func (app *application) signUpWithGoogleCallback(w http.ResponseWriter, r *http.
 	}
 	fmt.Print("Created a new user")
 
-	return
+	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+}
+
+func (app *application) profile(w http.ResponseWriter, r *http.Request) {
+	userId := app.session.Get(r, "authenticatedUserID")
+	w.Write([]byte(fmt.Sprintf("Welcome to home page %s", userId)))
 }
