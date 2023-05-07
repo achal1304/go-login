@@ -130,19 +130,28 @@ func (app *application) signUpWithGoogleCallback(w http.ResponseWriter, r *http.
 	w.Write([]byte(string(user.Email)))
 
 	form := forms.New(r.PostForm)
-	err = app.users.Insert(user.Email, defaultPassword)
-	if err != nil {
-		if errors.Is(err, mysql.ErrDuplicateEmail) {
-			form.Errors.Add("email", "Email already exists")
-			app.render(w, r, []string{"./ui/html/signup.page.tmpl"}, &templateData{Form: form})
-		} else {
-			app.serverError(w, err)
-		}
-		return
-	}
-	fmt.Print("Created a new user")
 
-	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+	userId, err := app.users.GetUser(user.Email)
+	if err != nil {
+		app.serverError(w, err)
+	}
+	if userId != 1 {
+		app.session.Put(r, "authenticatedUserID", userId)
+		http.Redirect(w, r, "/home", http.StatusSeeOther)
+	} else {
+		err = app.users.Insert(user.Email, defaultPassword)
+		if err != nil {
+			if errors.Is(err, mysql.ErrDuplicateEmail) {
+				form.Errors.Add("email", "Email already exists")
+				app.render(w, r, []string{"./ui/html/signup.page.tmpl"}, &templateData{Form: form})
+			} else {
+				app.serverError(w, err)
+			}
+			return
+		}
+		fmt.Print("Created a new user")
+		http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+	}
 }
 
 func (app *application) profile(w http.ResponseWriter, r *http.Request) {

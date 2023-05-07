@@ -41,6 +41,21 @@ func (m *UserModel) Insert(email string, password string) error {
 	return nil
 }
 
+func (m *UserModel) GetUser(email string) (int, error) {
+	var id int
+	stmt := `SELECT userId from user where email = ?`
+	row := m.DB.QueryRow(stmt, email)
+	err := row.Scan(&id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, ErrInvalidCredentials
+		} else {
+			return 0, err
+		}
+	}
+	return id, nil
+}
+
 func (m *UserModel) AuthenticateUser(email string, password string) (int, error) {
 	var id int
 	var hashed_password_user []byte
