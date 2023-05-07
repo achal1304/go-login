@@ -8,7 +8,7 @@ import (
 
 func (app *application) RunServer() {
 	srv := &http.Server{
-		Addr:         ":4000",
+		Addr:         ":3000",
 		Handler:      app.Routes(),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  5 * time.Second,

@@ -10,3 +10,7 @@ type User struct {
 	Hashed_password []byte
 	CreatedAt       time.Time
 }
+
+type GoogleUser struct {
+	Email string `json:"email"`
+}
