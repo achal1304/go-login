@@ -16,7 +16,7 @@ func (app *application) Routes() http.Handler {
 	mux.Post("/login", app.session.Enable(http.HandlerFunc(app.loginUser)))
 	mux.Get("/auth/google", app.session.Enable(http.HandlerFunc(app.signUpWithGoogleProvider)))
 	mux.Get("/auth/google/callback", app.session.Enable(http.HandlerFunc(app.signUpWithGoogleCallback)))
-	mux.Get("/home", app.session.Enable(http.HandlerFunc(app.profile)))
+	mux.Get("/home/:id", app.session.Enable(http.HandlerFunc(app.profile)))
 
 	return mux
 }

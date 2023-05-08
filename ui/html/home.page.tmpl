@@ -1,0 +1,33 @@
+<div>
+<h2>Profile Information</h2>
+{{if .User}}
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Email</th>
+      <th>Address</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+    {{with .User}}
+      <td>{{.UserId}}</td>
+      <td>{{.Name}}</td>
+      <td>{{.Email}}</td>
+      <td>{{.Address}}</td>
+    {{end}}
+    </tr>
+  </tbody>
+</table>
+<div>
+    <a href='/user/edit'><button type='button'>Edit Profile</button></a>
+</div>
+<div>
+    <a href='/logout'><button type='button'>Logout</button></a>
+</div>
+{{else}}
+<p>There's nothing to see here yet!</p>
+{{end}}
+</div>

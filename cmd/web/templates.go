@@ -6,6 +6,6 @@ import (
 )
 
 type templateData struct {
-	Users *models.User
-	Form  *forms.Form
+	User *models.User
+	Form *forms.Form
 }

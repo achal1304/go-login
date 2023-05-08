@@ -6,12 +6,14 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/achal1304/go-login/pkg/models"
 	"github.com/go-sql-driver/mysql"
 	"golang.org/x/crypto/bcrypt"
 )
 
 var (
 	ErrDuplicateEmail     = errors.New("models: email address already in use")
+	ErrIdNotFound         = errors.New("models: email address already in use")
 	ErrInvalidCredentials = errors.New("models: invalid user credentials")
 )
 
@@ -82,4 +84,21 @@ func (m *UserModel) AuthenticateUser(email string, password string) (int, error)
 	}
 
 	return id, nil
+}
+
+func (m *UserModel) GetUserDetailsFromId(userId int) (*models.User, error) {
+	var user models.User
+	stmt := `SELECT userId, COALESCE(name, ''), COALESCE(address, ''), email, createdAt FROM USER WHERE userId = ?`
+	row := m.DB.QueryRow(stmt, userId)
+	err := row.Scan(&user.UserId, &user.Name, &user.Address, &user.Email, &user.CreatedAt)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrIdNotFound
+		} else {
+			return nil, err
+		}
+
+	}
+
+	return &user, nil
 }

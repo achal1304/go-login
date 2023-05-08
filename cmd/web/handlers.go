@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 
 	"github.com/achal1304/go-login/pkg/forms"
 	"github.com/achal1304/go-login/pkg/models"
@@ -99,7 +100,7 @@ func (app *application) loginUser(w http.ResponseWriter, r *http.Request) {
 
 	app.session.Put(r, "authenticatedUserID", userId)
 
-	http.Redirect(w, r, "/home", http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/home/%d", userId), http.StatusSeeOther)
 }
 
 func (app *application) signUpWithGoogleProvider(w http.ResponseWriter, r *http.Request) {
@@ -137,7 +138,7 @@ func (app *application) signUpWithGoogleCallback(w http.ResponseWriter, r *http.
 	}
 	if userId != 1 {
 		app.session.Put(r, "authenticatedUserID", userId)
-		http.Redirect(w, r, "/home", http.StatusSeeOther)
+		http.Redirect(w, r, fmt.Sprintf("/home/%d", userId), http.StatusSeeOther)
 	} else {
 		err = app.users.Insert(user.Email, defaultPassword)
 		if err != nil {
@@ -155,6 +156,26 @@ func (app *application) signUpWithGoogleCallback(w http.ResponseWriter, r *http.
 }
 
 func (app *application) profile(w http.ResponseWriter, r *http.Request) {
-	userId := app.session.Get(r, "authenticatedUserID")
-	w.Write([]byte(fmt.Sprintf("Welcome to home page %s", userId)))
+	// userId := app.session.Get(r, "authenticatedUserID")
+	// w.Write([]byte(fmt.Sprintf("Welcome to home page %s", userId)))
+
+	userId, err := strconv.Atoi(r.URL.Query().Get(":id"))
+	if err != nil || userId < 0 {
+		fmt.Println(err)
+		app.NotFound(w)
+		return
+	}
+
+	user, err := app.users.GetUserDetailsFromId(userId)
+	if err != nil {
+		fmt.Println(err)
+		app.serverError(w, err)
+		return
+	}
+
+	files := []string{
+		"./ui/html/home.page.tmpl",
+	}
+	app.render(w, r, files, &templateData{User: user})
+
 }
