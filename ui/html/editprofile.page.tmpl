@@ -1,0 +1,52 @@
+<div>
+    <form action='/home/edit/{{.User.UserId}}' method='POST' novalidate>
+    <input type="hidden" name="_method" value="PATCH">
+        <div>
+        <label>Email:</label>
+        {{with .Form.Errors.Get "email"}}
+        <label class='error'>{{.}}</label>
+        {{end}}
+        <input type='email' name='email' value = {{.User.Email}}>
+        </div>
+        <div>
+        <label>Address:</label>
+        {{with .Form.Errors.Get "address"}}
+        <label class='error'>{{.}}</label>
+        {{end}}
+        <input type='text' name='address' value = {{.User.Address}}>
+        </div>
+        <div>
+        <label>Name:</label>
+        {{with .Form.Errors.Get "name"}}
+        <label class='error'>{{.}}</label>
+        {{end}}
+        <input type='text'  name='name' value = {{.User.Name}}>
+        </div>
+        <div>
+        <input type='submit' value='Edit'>
+        </div>
+        <div>
+        <a href='/home/{{.User.UserId}}'><button type='button'>Cancel</button></a>
+        </div>
+    </form>
+</div>
+
+<style>
+  label {
+    display: block;
+    margin-bottom: 0.5em;
+  }
+
+  input[type="email"],
+  input[type="password"],
+  input[type="submit"] {
+    display: block;
+    margin-bottom: 1em;
+  }
+
+  .error {
+    color: red;
+    font-style: italic;
+    font-size: 0.8em;
+  }
+</style>

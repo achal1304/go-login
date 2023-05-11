@@ -17,6 +17,8 @@ func (app *application) Routes() http.Handler {
 	mux.Get("/auth/google", app.session.Enable(http.HandlerFunc(app.signUpWithGoogleProvider)))
 	mux.Get("/auth/google/callback", app.session.Enable(http.HandlerFunc(app.signUpWithGoogleCallback)))
 	mux.Get("/home/:id", app.session.Enable(http.HandlerFunc(app.profile)))
+	mux.Get("/home/edit/:id", app.session.Enable(http.HandlerFunc(app.editProfileForm)))
+	mux.Patch("/home/edit/:id", app.session.Enable(http.HandlerFunc(app.editProfile)))
 
-	return mux
+	return app.methodOverride(mux)
 }

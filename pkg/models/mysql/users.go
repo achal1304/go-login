@@ -88,9 +88,9 @@ func (m *UserModel) AuthenticateUser(email string, password string) (int, error)
 
 func (m *UserModel) GetUserDetailsFromId(userId int) (*models.User, error) {
 	var user models.User
-	stmt := `SELECT userId, COALESCE(name, ''), COALESCE(address, ''), email, createdAt FROM USER WHERE userId = ?`
+	stmt := `SELECT userId, COALESCE(name, ''), COALESCE(address, ''), email, hashed_password, createdAt FROM USER WHERE userId = ?`
 	row := m.DB.QueryRow(stmt, userId)
-	err := row.Scan(&user.UserId, &user.Name, &user.Address, &user.Email, &user.CreatedAt)
+	err := row.Scan(&user.UserId, &user.Name, &user.Address, &user.Email, &user.Hashed_password, &user.CreatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrIdNotFound
@@ -101,4 +101,19 @@ func (m *UserModel) GetUserDetailsFromId(userId int) (*models.User, error) {
 	}
 
 	return &user, nil
+}
+
+func (m *UserModel) UpdateUserDetails(userId int, email string, address string, name string) error {
+	stmt := `UPDATE USER SET email = ? , name = ?, address = ? WHERE userId = ?`
+	_, err := m.DB.Exec(stmt, email, name, address, userId)
+	if err != nil {
+		var mysqlError *mysql.MySQLError
+		if errors.As(err, &mysqlError) {
+			if strings.Contains(mysqlError.Message, "user_uc_email") {
+				return ErrDuplicateEmail
+			}
+		}
+		return err
+	}
+	return nil
 }

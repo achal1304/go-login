@@ -22,7 +22,9 @@
   </tbody>
 </table>
 <div>
-    <a href='/user/edit'><button type='button'>Edit Profile</button></a>
+    {{with .User}}
+        <a href='/home/edit/{{.UserId}}'><button type='button'>Edit Profile</button></a>
+    {{end}}
 </div>
 <div>
     <a href='/logout'><button type='button'>Logout</button></a>

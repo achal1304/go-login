@@ -12,6 +12,7 @@ import (
 	"github.com/achal1304/go-login/pkg/forms"
 	"github.com/achal1304/go-login/pkg/models"
 	"github.com/achal1304/go-login/pkg/models/mysql"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func Home(w http.ResponseWriter, r *http.Request) {
@@ -178,4 +179,74 @@ func (app *application) profile(w http.ResponseWriter, r *http.Request) {
 	}
 	app.render(w, r, files, &templateData{User: user})
 
+}
+
+func (app *application) editProfileForm(w http.ResponseWriter, r *http.Request) {
+	userId, err := strconv.Atoi(r.URL.Query().Get(":id"))
+	if err != nil || userId < 0 {
+		fmt.Println(err)
+		app.NotFound(w)
+		return
+	}
+	fmt.Print("ID - edit ", userId)
+
+	user, err := app.users.GetUserDetailsFromId(userId)
+	if err != nil {
+		fmt.Println(err)
+		app.serverError(w, err)
+		return
+	}
+
+	files := []string{
+		"./ui/html/editprofile.page.tmpl",
+	}
+
+	app.render(w, r, files, &templateData{Form: forms.New(nil), User: user})
+}
+
+func (app *application) editProfile(w http.ResponseWriter, r *http.Request) {
+	userId, _ := strconv.Atoi(r.URL.Query().Get(":id"))
+	fmt.Print("ID - patch -  ", userId)
+
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	form := forms.New(r.PostForm)
+	form.MatchesPattern("email", forms.EmailRX)
+	form.MinLength("name", 3)
+	form.MinLength("address", 5)
+
+	user, err := app.users.GetUserDetailsFromId(userId)
+	if err != nil {
+		fmt.Println(err)
+		app.serverError(w, err)
+		return
+	}
+	err = bcrypt.CompareHashAndPassword(user.Hashed_password, []byte(defaultPassword))
+	if err == nil && user.Email != form.Get("email") {
+		form.Errors.Add("email", "This field cannot be changed as you are signedIn from Google")
+	}
+
+	if !form.Valid() {
+		fmt.Println("Invalid form")
+		app.render(w, r, []string{"./ui/html/editprofile.page.tmpl"}, &templateData{Form: form, User: user})
+		return
+	}
+
+	err = app.users.UpdateUserDetails(userId, form.Get("email"), form.Get("address"), form.Get("name"))
+	if err != nil {
+		fmt.Println(err)
+		if errors.Is(err, mysql.ErrDuplicateEmail) {
+			form.Errors.Add("email", "Email already exists")
+			app.render(w, r, []string{"./ui/html/editprofile.page.tmpl"}, &templateData{Form: form, User: user})
+		} else {
+			app.serverError(w, err)
+		}
+		return
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("/home/%d", userId), http.StatusSeeOther)
 }
