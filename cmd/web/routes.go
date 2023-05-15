@@ -20,5 +20,8 @@ func (app *application) Routes() http.Handler {
 	mux.Get("/home/edit/:id", app.session.Enable(http.HandlerFunc(app.editProfileForm)))
 	mux.Patch("/home/edit/:id", app.session.Enable(http.HandlerFunc(app.editProfile)))
 
+	mux.Get("/reset", app.session.Enable(http.HandlerFunc(app.resetPasswordForm)))
+	mux.Post("/reset", app.session.Enable(http.HandlerFunc(app.resetPassword)))
+
 	return app.methodOverride(mux)
 }

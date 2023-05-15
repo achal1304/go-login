@@ -250,3 +250,50 @@ func (app *application) editProfile(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, fmt.Sprintf("/home/%d", userId), http.StatusSeeOther)
 }
+
+func (app *application) resetPasswordForm(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("inside resetPasswordForm")
+	files := []string{
+		"./ui/html/resetpassword.page.tmpl",
+	}
+	data := templateData{
+		Form: forms.New(nil),
+	}
+	app.render(w, r, files, data)
+}
+
+func (app *application) resetPassword(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	form := forms.New(r.PostForm)
+	form.MatchesPattern("email", forms.EmailRX)
+	if !form.Valid() {
+		fmt.Println("Invalid form")
+		app.render(w, r, []string{"./ui/html/resetpassword.page.tmpl"}, &templateData{Form: form})
+		return
+	}
+
+	isEmailPresent := app.users.IsEmailPresent(form.Get("email"))
+	if !isEmailPresent {
+		form.Errors.Add("email", "Email doesnot exist, please enter a valid email")
+		app.render(w, r, []string{"./ui/html/resetpassword.page.tmpl"}, &templateData{Form: form})
+		return
+	}
+
+	user, err := app.users.GetUser(form.Get("email"))
+	fmt.Println("user id is ", user)
+	if err != nil {
+		app.serverError(w, err)
+	}
+
+	err = app.mailer.Send(form.Get("email"), "resetlink.tmpl", user, form.Get("email"))
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+}

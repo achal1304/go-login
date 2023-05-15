@@ -117,3 +117,21 @@ func (m *UserModel) UpdateUserDetails(userId int, email string, address string, 
 	}
 	return nil
 }
+
+func (m *UserModel) IsEmailPresent(email string) bool {
+	var emailID string
+	stmt := `SELECT email from USER where email = ?`
+	row := m.DB.QueryRow(stmt, email)
+	err := row.Scan(&emailID)
+	if err != nil {
+		fmt.Println(err)
+		return false
+	}
+	if emailID != "" {
+		fmt.Println(emailID)
+		return true
+	}
+	fmt.Print("No matching email")
+	return false
+
+}

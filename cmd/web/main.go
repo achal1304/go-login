@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/achal1304/go-login/internal/mailer"
 	"github.com/achal1304/go-login/pkg/models/mysql"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golangcollege/sessions"
@@ -13,6 +14,7 @@ import (
 type application struct {
 	users   *mysql.UserModel
 	session *sessions.Session
+	mailer  mailer.Mailer
 }
 
 func main() {
@@ -28,6 +30,7 @@ func main() {
 	app := &application{
 		users:   &mysql.UserModel{DB: db},
 		session: session,
+		mailer:  mailer.New(),
 	}
 
 	app.RunServer()
