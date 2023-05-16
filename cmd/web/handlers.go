@@ -138,7 +138,7 @@ func (app *application) signUpWithGoogleCallback(w http.ResponseWriter, r *http.
 	if err != nil {
 		app.serverError(w, err)
 	}
-	if userId != 1 {
+	if userId > 0 {
 		app.session.Put(r, "authenticatedUserID", userId)
 		http.Redirect(w, r, fmt.Sprintf("/home/%d", userId), http.StatusSeeOther)
 	} else {
@@ -227,8 +227,9 @@ func (app *application) editProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	err = bcrypt.CompareHashAndPassword(user.Hashed_password, []byte(defaultPassword))
-	if err == nil && user.Email != form.Get("email") {
+	if err == nil && user.Email == form.Get("email") {
 		form.Errors.Add("email", "This field cannot be changed as you are signedIn from Google")
+		return
 	}
 
 	if !form.Valid() {
@@ -278,6 +279,23 @@ func (app *application) resetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userByEmail, err := app.users.GetUserDetailsFromEmail(form.Get("email"))
+	if err != nil {
+		fmt.Println(err)
+		app.serverError(w, err)
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword(userByEmail.Hashed_password, []byte(defaultPassword))
+	fmt.Println("error", err)
+	fmt.Println("user by email", userByEmail.Email == form.Get("email"))
+	if err == nil && userByEmail.Email == form.Get("email") {
+		fmt.Println("Inside GOogle email check")
+		form.Errors.Add("email", "This field cannot be changed as you are signedIn from Google")
+		app.render(w, r, []string{"./ui/html/resetpassword.page.tmpl"}, &templateData{Form: form})
+		return
+	}
+
 	isEmailPresent := app.users.IsEmailPresent(form.Get("email"))
 	if !isEmailPresent {
 		form.Errors.Add("email", "Email doesnot exist, please enter a valid email")
@@ -296,7 +314,7 @@ func (app *application) resetPassword(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, err)
 		return
 	}
-	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
 
 func (app *application) resetPasswordWithToken(w http.ResponseWriter, r *http.Request) {
@@ -309,5 +327,16 @@ func (app *application) resetPasswordWithToken(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	fmt.Println(claims.UserId, claims.Email)
+	files := []string{
+		"./ui/html/newpassword.page.tmpl",
+	}
+	data := templateData{
+		Form: forms.New(nil),
+		User: &models.User{UserId: claims.UserId, Email: claims.Email},
+	}
+	app.render(w, r, files, data)
+}
+
+func (app *application) newPassword(w http.ResponseWriter, r *http.Request) {
+
 }

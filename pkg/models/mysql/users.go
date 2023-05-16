@@ -103,6 +103,23 @@ func (m *UserModel) GetUserDetailsFromId(userId int) (*models.User, error) {
 	return &user, nil
 }
 
+func (m *UserModel) GetUserDetailsFromEmail(email string) (*models.User, error) {
+	var user models.User
+	stmt := `SELECT userId, COALESCE(name, ''), COALESCE(address, ''), email, hashed_password, createdAt FROM USER WHERE email = ?`
+	row := m.DB.QueryRow(stmt, email)
+	err := row.Scan(&user.UserId, &user.Name, &user.Address, &user.Email, &user.Hashed_password, &user.CreatedAt)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrIdNotFound
+		} else {
+			return nil, err
+		}
+
+	}
+
+	return &user, nil
+}
+
 func (m *UserModel) UpdateUserDetails(userId int, email string, address string, name string) error {
 	stmt := `UPDATE USER SET email = ? , name = ?, address = ? WHERE userId = ?`
 	_, err := m.DB.Exec(stmt, email, name, address, userId)
