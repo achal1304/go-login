@@ -43,7 +43,7 @@ func (m Mailer) Send(recipient, templateFile string, userId int, email string) e
 		return err
 	}
 
-	resetLink := "http://localhost:3000/resetPassword/" + token.Plaintext
+	resetLink := "http://localhost:3000/resetPassword/" + token
 
 	data := map[string]interface{}{
 		"resetLink": resetLink,

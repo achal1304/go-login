@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strconv"
 
+	"github.com/achal1304/go-login/internal/data"
 	"github.com/achal1304/go-login/pkg/forms"
 	"github.com/achal1304/go-login/pkg/models"
 	"github.com/achal1304/go-login/pkg/models/mysql"
@@ -296,4 +297,17 @@ func (app *application) resetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+}
+
+func (app *application) resetPasswordWithToken(w http.ResponseWriter, r *http.Request) {
+	token := r.URL.Query().Get(":token")
+
+	claims, err := data.DecodeJWT(token)
+	if err != nil {
+		fmt.Println(err)
+		w.Write([]byte("Invalid token"))
+		return
+	}
+
+	fmt.Println(claims.UserId, claims.Email)
 }
