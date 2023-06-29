@@ -134,7 +134,22 @@ func (m *UserModel) UpdateUserDetails(userId int, email string, address string, 
 	}
 	return nil
 }
-
+func (m *UserModel) UpdatePassword(userId int, password string) error {
+	hashedpassowrd, err := bcrypt.GenerateFromPassword([]byte(password), 12)
+	if err != nil {
+		return err
+	}
+	stmt := `UPDATE user SET hashed_password = ? WHERE userId = ?`
+	result, err := m.DB.Exec(stmt, hashedpassowrd, userId)
+	if err != nil {
+		return err
+	}
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected == 0 {
+		return ErrIdNotFound
+	}
+	return nil
+}
 func (m *UserModel) IsEmailPresent(email string) bool {
 	var emailID string
 	stmt := `SELECT email from USER where email = ?`

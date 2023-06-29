@@ -24,7 +24,7 @@ func (app *application) Routes() http.Handler {
 	mux.Post("/reset", app.session.Enable(http.HandlerFunc(app.resetPassword)))
 
 	mux.Get("/resetPassword/:token", app.session.Enable(http.HandlerFunc(app.resetPasswordWithToken)))
-	mux.Get("/newPassword/:id", app.session.Enable(http.HandlerFunc(app.newPassword)))
+	mux.Post("/newPassword/:id", app.session.Enable(http.HandlerFunc(app.newPassword)))
 
 	return app.methodOverride(mux)
 }

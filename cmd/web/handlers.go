@@ -338,5 +338,26 @@ func (app *application) resetPasswordWithToken(w http.ResponseWriter, r *http.Re
 }
 
 func (app *application) newPassword(w http.ResponseWriter, r *http.Request) {
+	userId, _ := strconv.Atoi(r.URL.Query().Get(":id"))
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
 
+	form := forms.New(r.PostForm)
+	form.MinLength("password", 3)
+	if !form.Valid() {
+		app.render(w, r, []string{"./ui/html/newpassword.page.tmpl"}, &templateData{Form: form})
+		return
+	}
+	err = app.users.UpdatePassword(userId, form.Get("password"))
+	if err != nil {
+		if err == mysql.ErrIdNotFound {
+			form.Errors.Add("password", "User is not present")
+		} else {
+			app.serverError(w, err)
+		}
+	}
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
